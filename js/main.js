@@ -121,8 +121,8 @@ function renderHome() {
 
   todayTitle.textContent = artwork.title;
   todayCopy.textContent = artwork.comment || "今日はこの作品をゆっくり眺めてみましょう。";
-  todayArtwork.className = "featured-frame";
-  todayArtwork.innerHTML = `${artworkImageHtml(artwork, "今日の展示作品")}${plateHtml(artwork)}`;
+  todayArtwork.className = "featured-display";
+  todayArtwork.innerHTML = `<div class="featured-frame">${artworkImageHtml(artwork, "今日の展示作品")}</div>${plateHtml(artwork)}`;
 }
 
 function renderList() {
@@ -218,7 +218,10 @@ function renderDetail(id) {
   }
 
   detailContent.innerHTML = `
-    <div class="detail-image-wrap">${artworkImageHtml(artwork, "作品詳細")}</div>
+    <div class="detail-artwork-display">
+      <div class="detail-image-wrap">${artworkImageHtml(artwork, "作品詳細")}</div>
+      ${plateHtml(artwork, "detail-plate")}
+    </div>
     <div class="detail-text">
       <p class="eyebrow">Artwork Detail</p>
       <h1 id="detail-title">${escapeHtml(artwork.title)}</h1>

@@ -216,11 +216,22 @@ main {
 }
 
 .featured-frame,
-.museum-piece,
 .art-card,
 .detail-image-wrap {
   background: #fffdf8;
   box-shadow: var(--shadow);
+}
+
+.featured-display,
+.museum-piece,
+.detail-artwork-display {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+.featured-display .featured-frame {
+  width: 100%;
 }
 
 .featured-frame,
@@ -279,25 +290,30 @@ main {
 }
 
 .art-plate,
-.museum-plate {
-  margin: 14px auto 0;
-  width: min(100%, 420px);
-  padding: 12px 14px;
+.museum-plate,
+.detail-plate {
+  margin: 16px auto 0;
+  width: min(92%, 360px);
+  padding: 10px 14px;
   text-align: center;
-  background: #f3ead8;
-  border: 1px solid #d9c69f;
+  background: #fffaf0;
+  border: 1px solid rgba(185, 135, 51, 0.28);
+  box-shadow: 0 8px 18px rgba(51, 43, 33, 0.08);
 }
 
 .art-plate strong,
-.museum-plate strong {
+.museum-plate strong,
+.detail-plate strong {
   display: block;
   margin-bottom: 4px;
+  font-size: 0.98rem;
 }
 
 .art-plate span,
-.museum-plate span {
+.museum-plate span,
+.detail-plate span {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .filter-panel {
@@ -365,6 +381,8 @@ textarea {
 .museum-piece {
   padding: clamp(18px, 3.2vw, 34px);
   border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .museum-image-wrap {
