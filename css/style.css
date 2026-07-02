@@ -95,9 +95,9 @@ button {
 }
 
 main {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1040px, calc(100% - 40px));
   margin: 0 auto;
-  padding: clamp(28px, 5vw, 60px) 0 92px;
+  padding: clamp(24px, 4vw, 48px) 0 92px;
 }
 
 .view {
@@ -109,7 +109,7 @@ main {
 }
 
 .section-heading {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .section-heading h1 {
@@ -143,10 +143,10 @@ main {
 
 .today-layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(320px, 1.12fr);
+  grid-template-columns: minmax(300px, 0.9fr) minmax(320px, 1.1fr);
   align-items: center;
-  gap: clamp(28px, 6vw, 72px);
-  min-height: 58vh;
+  gap: clamp(24px, 4.8vw, 56px);
+  min-height: 50vh;
 }
 
 #today-title {
@@ -181,6 +181,7 @@ main {
 .primary-button {
   color: #fff;
   background: var(--accent);
+  box-shadow: 0 10px 22px rgba(47, 111, 104, 0.2);
 }
 
 .primary-button:hover {
@@ -190,6 +191,12 @@ main {
 .primary-button.small {
   min-height: 36px;
   padding: 8px 14px;
+}
+
+.hero-cta {
+  min-height: 52px;
+  padding: 13px 22px;
+  font-size: 1.05rem;
 }
 
 .ghost-button {
@@ -218,8 +225,8 @@ main {
 
 .featured-frame,
 .museum-image-wrap {
-  padding: clamp(14px, 2.4vw, 24px);
-  border: 12px solid var(--frame);
+  padding: clamp(12px, 2vw, 20px);
+  border: 10px solid var(--frame);
   outline: 2px solid var(--frame-dark);
 }
 
@@ -234,28 +241,41 @@ main {
 }
 
 .featured-frame {
-  min-height: 380px;
+  min-height: 320px;
 }
 
 .featured-frame img {
   aspect-ratio: 4 / 3;
+  height: auto;
+  max-height: 52vh;
+  object-fit: contain;
   background: #eee8dd;
 }
 
 .empty-state {
   display: grid;
   place-items: center;
-  min-height: 320px;
+  min-height: 300px;
   color: var(--muted);
 }
 
 .empty-art {
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 8px;
   width: 100%;
-  min-height: 260px;
+  min-height: 230px;
   border: 1px dashed var(--line);
   background: #f6f1e8;
+  text-align: center;
+}
+
+.empty-art-title {
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .art-plate,
@@ -343,12 +363,12 @@ textarea {
 }
 
 .museum-piece {
-  padding: clamp(18px, 4vw, 44px);
+  padding: clamp(18px, 3.2vw, 34px);
   border-radius: 8px;
 }
 
 .museum-image-wrap {
-  max-width: 760px;
+  max-width: 680px;
   margin: 0 auto;
 }
 
@@ -533,19 +553,21 @@ textarea {
   z-index: 12;
   display: none;
   grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  gap: 8px;
+  padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
   background: rgba(251, 250, 246, 0.94);
   border-top: 1px solid var(--line);
+  box-shadow: 0 -12px 28px rgba(51, 43, 33, 0.1);
   backdrop-filter: blur(16px);
 }
 
 .bottom-nav a {
   display: grid;
   place-items: center;
-  min-height: 44px;
+  min-height: 56px;
   font-size: 0.86rem;
   font-weight: 700;
+  touch-action: manipulation;
 }
 
 @media (max-width: 760px) {
@@ -558,8 +580,9 @@ textarea {
   }
 
   main {
-    width: min(100% - 24px, 1120px);
-    padding-bottom: 96px;
+    width: min(100% - 24px, 1040px);
+    padding-top: 22px;
+    padding-bottom: 112px;
   }
 
   .today-layout,
@@ -570,6 +593,12 @@ textarea {
 
   .featured-frame {
     min-height: auto;
+    border-width: 8px;
+    padding: 10px;
+  }
+
+  .featured-frame img {
+    max-height: 48vh;
   }
 
   .gallery-stage {

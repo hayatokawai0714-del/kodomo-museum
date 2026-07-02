@@ -82,10 +82,12 @@ function artworkImageHtml(artwork, altPrefix = "作品") {
 function renderHome() {
   const artwork = getTodayArtwork();
   if (!artwork) {
-    todayTitle.textContent = "まだ展示作品がありません";
-    todayCopy.textContent = "最初の作品を追加して、家族だけの小さな美術館を開きましょう。";
+    todayTitle.textContent = "最初の作品をお待ちしています";
+    todayCopy.textContent =
+      "ここは、できあがった作品を静かに飾っておける小さな展示室です。まずは1枚、写真を選んで作品プレートを添えてみましょう。";
     todayArtwork.className = "featured-frame empty-state";
-    todayArtwork.innerHTML = '<div class="empty-art">No Artwork</div>';
+    todayArtwork.innerHTML =
+      '<div class="empty-art"><span class="empty-art-title">First Exhibition</span><span>ここに作品が飾られます</span></div>';
     return;
   }
 
@@ -229,10 +231,12 @@ function setActiveLinks(route) {
 }
 
 function navigate(route) {
+  const previousRoute = state.currentRoute;
   state.currentRoute = route;
   views.forEach((view) => view.classList.toggle("active", view.id === route));
   setActiveLinks(route);
   window.location.hash = route;
+  if (previousRoute !== route) window.scrollTo({ top: 0, behavior: "smooth" });
 
   if (route === "home") renderHome();
   if (route === "gallery") renderGallery();
@@ -296,7 +300,6 @@ form.addEventListener("submit", (event) => {
     renderHome();
     renderList();
     renderGallery();
-    navigate("detail");
     renderDetail(artwork.id);
   } catch {
     state.artworks.shift();
