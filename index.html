@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>こども美術館</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#home" data-route="home" aria-label="ホームへ戻る">
+        <span class="brand-mark">□</span>
+        <span>こども美術館</span>
+      </a>
+      <nav class="top-nav" aria-label="メインナビゲーション">
+        <a href="#home" data-route="home">ホーム</a>
+        <a href="#gallery" data-route="gallery">展示室</a>
+        <a href="#list" data-route="list">一覧</a>
+        <a href="#add" data-route="add">追加</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="home" class="view active" aria-labelledby="home-title">
+        <div class="section-heading">
+          <p class="eyebrow">Home Exhibition</p>
+          <h1 id="home-title">こども美術館</h1>
+        </div>
+        <div class="today-layout">
+          <div>
+            <p class="label">今日の展示作品</p>
+            <h2 id="today-title">まだ展示作品がありません</h2>
+            <p id="today-copy" class="lead">最初の作品を追加して、家族だけの小さな美術館を開きましょう。</p>
+            <div class="button-row">
+              <a class="primary-button" href="#add" data-route="add">作品を追加</a>
+              <a class="ghost-button" href="#gallery" data-route="gallery">展示室を見る</a>
+            </div>
+          </div>
+          <article id="today-artwork" class="featured-frame empty-state">
+            <div class="empty-art">No Artwork</div>
+          </article>
+        </div>
+      </section>
+
+      <section id="gallery" class="view" aria-labelledby="gallery-title">
+        <div class="section-heading">
+          <p class="eyebrow">Museum View</p>
+          <h1 id="gallery-title">展示室</h1>
+        </div>
+
+        <div class="filter-panel" aria-label="展示室フィルター">
+          <label>
+            表示
+            <select id="filter-type">
+              <option value="all">すべて</option>
+              <option value="favorite">お気に入り</option>
+              <option value="age">年齢別</option>
+              <option value="tag">タグ別</option>
+              <option value="month">月別</option>
+            </select>
+          </label>
+          <label id="filter-value-wrap" class="hidden">
+            条件
+            <select id="filter-value"></select>
+          </label>
+        </div>
+
+        <div id="gallery-empty" class="notice hidden">
+          条件に合う作品がありません。作品を追加するか、フィルターを変更してください。
+        </div>
+
+        <div id="gallery-stage" class="gallery-stage" aria-live="polite">
+          <button class="nav-button" id="prev-art" type="button" aria-label="前の作品">‹</button>
+          <article id="gallery-artwork" class="museum-piece"></article>
+          <button class="nav-button" id="next-art" type="button" aria-label="次の作品">›</button>
+        </div>
+      </section>
+
+      <section id="list" class="view" aria-labelledby="list-title">
+        <div class="section-heading row-heading">
+          <div>
+            <p class="eyebrow">Collection</p>
+            <h1 id="list-title">作品一覧</h1>
+          </div>
+          <a class="primary-button small" href="#add" data-route="add">追加</a>
+        </div>
+        <div id="artwork-grid" class="artwork-grid"></div>
+      </section>
+
+      <section id="detail" class="view" aria-labelledby="detail-title">
+        <button class="text-button" type="button" id="back-to-list">← 一覧へ戻る</button>
+        <article id="detail-content" class="detail-layout"></article>
+      </section>
+
+      <section id="add" class="view" aria-labelledby="add-title">
+        <div class="section-heading">
+          <p class="eyebrow">New Artwork</p>
+          <h1 id="add-title">作品追加</h1>
+        </div>
+
+        <form id="artwork-form" class="artwork-form">
+          <label>
+            画像アップロード
+            <input id="image-input" name="image" type="file" accept="image/*" required />
+          </label>
+          <div id="image-preview" class="image-preview">画像プレビュー</div>
+
+          <div class="form-grid">
+            <label>
+              作品名
+              <input name="title" type="text" maxlength="60" required placeholder="例：ひかりのまち" />
+            </label>
+            <label>
+              作者名
+              <input name="artist" type="text" maxlength="40" required placeholder="例：こどもA" />
+            </label>
+            <label>
+              年齢
+              <input name="age" type="number" min="0" max="18" required placeholder="5" />
+            </label>
+            <label>
+              制作日
+              <input name="date" type="date" required />
+            </label>
+          </div>
+
+          <label>
+            コメント
+            <textarea name="comment" rows="3" maxlength="240" placeholder="飾る人のコメント"></textarea>
+          </label>
+          <label>
+            子供の説明
+            <textarea name="story" rows="4" maxlength="400" placeholder="本人が話してくれたこと"></textarea>
+          </label>
+          <label>
+            タグ
+            <input name="tags" type="text" maxlength="120" placeholder="例：クレヨン, 夏, 家族" />
+          </label>
+
+          <div class="form-actions">
+            <label class="favorite-check">
+              <input name="favorite" type="checkbox" />
+              お気に入りにする
+            </label>
+            <button class="primary-button" type="submit">保存する</button>
+          </div>
+          <p id="form-message" class="form-message" role="status"></p>
+        </form>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="スマホナビゲーション">
+      <a href="#home" data-route="home">ホーム</a>
+      <a href="#gallery" data-route="gallery">展示室</a>
+      <a href="#list" data-route="list">一覧</a>
+      <a href="#add" data-route="add">追加</a>
+    </nav>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
