@@ -545,6 +545,12 @@ textarea {
   font-weight: 700;
 }
 
+.storage-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .bottom-nav {
   position: fixed;
   right: 0;

@@ -1,4 +1,7 @@
 const STORAGE_KEY = "kodomoMuseumArtworks";
+const IMAGE_MAX_EDGE = 1200;
+const JPEG_QUALITY = 0.72;
+const STORAGE_SOFT_LIMIT_BYTES = 4.5 * 1024 * 1024;
 
 const state = {
   artworks: [],
@@ -6,6 +9,7 @@ const state = {
   galleryItems: [],
   galleryIndex: 0,
   selectedImage: "",
+  selectedImageSize: 0,
 };
 
 const views = document.querySelectorAll(".view");
@@ -24,6 +28,7 @@ const form = document.querySelector("#artwork-form");
 const imageInput = document.querySelector("#image-input");
 const imagePreview = document.querySelector("#image-preview");
 const formMessage = document.querySelector("#form-message");
+const storageStatus = document.querySelector("#storage-status");
 const detailContent = document.querySelector("#detail-content");
 
 function loadArtworks() {
@@ -37,6 +42,28 @@ function loadArtworks() {
 
 function saveArtworks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.artworks));
+}
+
+function getStorageBytes(value) {
+  return new Blob([value || ""]).size;
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return "0 KB";
+  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function getSavedStorageBytes() {
+  return getStorageBytes(localStorage.getItem(STORAGE_KEY) || "");
+}
+
+function updateStorageStatus() {
+  const savedBytes = getSavedStorageBytes();
+  const selectedText = state.selectedImageSize
+    ? ` / 選択中の写真 約${formatBytes(state.selectedImageSize)} / 保存後見込み 約${formatBytes(savedBytes + state.selectedImageSize)}`
+    : "";
+  storageStatus.textContent = `保存済み ${state.artworks.length}件 / 使用容量 約${formatBytes(savedBytes)}${selectedText}`;
 }
 
 function escapeHtml(value = "") {
@@ -76,7 +103,8 @@ function plateHtml(artwork, className = "art-plate") {
 }
 
 function artworkImageHtml(artwork, altPrefix = "作品") {
-  return `<img src="${artwork.image}" alt="${escapeHtml(`${altPrefix}：${artwork.title}`)}" />`;
+  const imageUrl = artwork.imageUrl || artwork.image;
+  return `<img src="${imageUrl}" alt="${escapeHtml(`${altPrefix}：${artwork.title}`)}" />`;
 }
 
 function renderHome() {
@@ -241,12 +269,15 @@ function navigate(route) {
   if (route === "home") renderHome();
   if (route === "gallery") renderGallery();
   if (route === "list") renderList();
+  if (route === "add") updateStorageStatus();
 }
 
 function resetForm() {
   form.reset();
   state.selectedImage = "";
+  state.selectedImageSize = 0;
   imagePreview.textContent = "画像プレビュー";
+  updateStorageStatus();
 }
 
 function parseTags(value) {
@@ -257,16 +288,82 @@ function parseTags(value) {
     .slice(0, 12);
 }
 
-imageInput.addEventListener("change", () => {
+function loadImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image), { once: true });
+    image.addEventListener("error", () => reject(new Error("image-load-failed")), { once: true });
+    image.src = dataUrl;
+  });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result), { once: true });
+    reader.addEventListener("error", () => reject(new Error("file-read-failed")), { once: true });
+    reader.readAsDataURL(file);
+  });
+}
+
+function getResizeSize(width, height) {
+  const scale = Math.min(1, IMAGE_MAX_EDGE / Math.max(width, height));
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
+async function compressImageFile(file) {
+  const sourceDataUrl = await readFileAsDataUrl(file);
+  const image = await loadImage(sourceDataUrl);
+  const size = getResizeSize(image.naturalWidth, image.naturalHeight);
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  canvas.width = size.width;
+  canvas.height = size.height;
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+}
+
+imageInput.addEventListener("change", async () => {
   const file = imageInput.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.addEventListener("load", () => {
-    state.selectedImage = reader.result;
-    imagePreview.innerHTML = `<img src="${state.selectedImage}" alt="選択した画像のプレビュー" />`;
-  });
-  reader.readAsDataURL(file);
+  formMessage.textContent = "写真を保存用に圧縮しています。";
+  imagePreview.textContent = "圧縮中...";
+
+  try {
+    const compressedImage = await compressImageFile(file);
+    const compressedSize = getStorageBytes(compressedImage);
+
+    if (compressedSize > STORAGE_SOFT_LIMIT_BYTES) {
+      state.selectedImage = "";
+      state.selectedImageSize = 0;
+      imageInput.value = "";
+      imagePreview.textContent = "画像プレビュー";
+      formMessage.textContent = "この写真は圧縮しても大きすぎるため保存できませんでした。";
+      updateStorageStatus();
+      return;
+    }
+
+    state.selectedImage = compressedImage;
+    state.selectedImageSize = compressedSize;
+    imagePreview.innerHTML = `<img src="${state.selectedImage}" alt="圧縮後の画像プレビュー" />`;
+    formMessage.textContent = `写真を圧縮しました（約${formatBytes(compressedSize)}）。`;
+    updateStorageStatus();
+  } catch {
+    state.selectedImage = "";
+    state.selectedImageSize = 0;
+    imageInput.value = "";
+    imagePreview.textContent = "画像プレビュー";
+    formMessage.textContent = "写真を読み込めませんでした。別の写真を選んでください。";
+    updateStorageStatus();
+  }
 });
 
 form.addEventListener("submit", (event) => {
@@ -280,7 +377,7 @@ form.addEventListener("submit", (event) => {
 
   const artwork = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    image: state.selectedImage,
+    imageUrl: state.selectedImage,
     title: data.get("title").trim(),
     artist: data.get("artist").trim(),
     age: data.get("age"),
@@ -293,8 +390,18 @@ form.addEventListener("submit", (event) => {
   };
 
   try {
-    state.artworks.unshift(artwork);
-    saveArtworks();
+    const nextArtworks = [artwork, ...state.artworks];
+    const nextJson = JSON.stringify(nextArtworks);
+    const nextSize = getStorageBytes(nextJson);
+
+    if (nextSize > STORAGE_SOFT_LIMIT_BYTES) {
+      formMessage.textContent = "写真の容量が大きいため保存できませんでした。別の写真を選ぶか、保存済み作品を減らしてください。";
+      updateStorageStatus();
+      return;
+    }
+
+    localStorage.setItem(STORAGE_KEY, nextJson);
+    state.artworks = nextArtworks;
     formMessage.textContent = "保存しました。";
     resetForm();
     renderHome();
@@ -302,8 +409,8 @@ form.addEventListener("submit", (event) => {
     renderGallery();
     renderDetail(artwork.id);
   } catch {
-    state.artworks.shift();
-    formMessage.textContent = "保存容量を超えた可能性があります。画像サイズを小さくしてください。";
+    formMessage.textContent = "写真の容量が大きいため保存できませんでした。別の写真を選ぶか、保存済み作品を減らしてください。";
+    updateStorageStatus();
   }
 });
 
@@ -338,6 +445,7 @@ document.addEventListener("click", (event) => {
     if (!ok) return;
     state.artworks = state.artworks.filter((item) => item.id !== deleteButton.dataset.deleteId);
     saveArtworks();
+    updateStorageStatus();
     renderHome();
     renderList();
     renderGallery();
@@ -388,4 +496,5 @@ loadArtworks();
 renderHome();
 renderList();
 renderGallery();
+updateStorageStatus();
 navigate(window.location.hash.replace("#", "") || "home");
