@@ -12,6 +12,7 @@ const state = {
   galleryIndex: 0,
   selectedImage: "",
   selectedImageSize: 0,
+  cloudImageObjectUrls: [],
 };
 
 const views = document.querySelectorAll(".view");
@@ -118,6 +119,27 @@ async function uploadArtworkImage(imageData, fileName = "artwork.jpg") {
   }
 }
 
+async function fetchArtworkImageUrl(imageKey) {
+  if (!imageKey) return "";
+
+  try {
+    const response = await fetch(`${API_BASE}/image?key=${encodeURIComponent(imageKey)}`, {
+      headers: getApiHeaders(),
+    });
+    if (!response.ok) throw new Error("Image request failed");
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.warn("Failed to fetch artwork image.", error);
+    return "";
+  }
+}
+
+function revokeCloudImageObjectUrls() {
+  state.cloudImageObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  state.cloudImageObjectUrls = [];
+}
+
 function toApiArtworkPayload(artwork) {
   return {
     id: artwork.id,
@@ -173,6 +195,18 @@ function normalizeApiArtwork(artwork) {
   };
 }
 
+async function attachCloudImageUrls(artworks) {
+  const nextArtworks = await Promise.all(
+    artworks.map(async (artwork) => {
+      if (artwork.imageUrl || !artwork.imageKey) return artwork;
+      const imageUrl = await fetchArtworkImageUrl(artwork.imageKey);
+      if (imageUrl) state.cloudImageObjectUrls.push(imageUrl);
+      return { ...artwork, imageUrl };
+    })
+  );
+  return nextArtworks;
+}
+
 async function loadCloudArtworks() {
   if (familyCodeInput) saveFamilyCode(familyCodeInput.value);
 
@@ -183,7 +217,8 @@ async function loadCloudArtworks() {
     return;
   }
 
-  state.artworks = artworks.map(normalizeApiArtwork);
+  revokeCloudImageObjectUrls();
+  state.artworks = await attachCloudImageUrls(artworks.map(normalizeApiArtwork));
   state.galleryIndex = 0;
   renderHome();
   renderList();
@@ -276,7 +311,7 @@ function plateHtml(artwork, className = "art-plate") {
 
 function artworkImageHtml(artwork, altPrefix = "作品") {
   const imageUrl = artwork.imageUrl || artwork.image;
-  if (!imageUrl) return '<div class="image-placeholder">画像はクラウドに保存されています</div>';
+  if (!imageUrl) return '<div class="image-placeholder">画像を準備中です</div>';
   return `<img src="${imageUrl}" alt="${escapeHtml(`${altPrefix}：${artwork.title}`)}" />`;
 }
 
