@@ -115,6 +115,46 @@ async function handlePost(request, env) {
   return jsonResponse({ ok: true, artwork }, 201);
 }
 
+function getArtworkId(request) {
+  const url = new URL(request.url);
+  return stringOrNull(url.searchParams.get("id"));
+}
+
+function isAllowedImageKey(key) {
+  return typeof key === "string" && key.startsWith("artworks/") && !key.includes("..") && !key.includes("\\");
+}
+
+async function deleteArtworkImage(env, imageKey) {
+  if (!isAllowedImageKey(imageKey) || !env.ARTWORK_BUCKET) return;
+
+  try {
+    await env.ARTWORK_BUCKET.delete(imageKey);
+  } catch {
+    // Continue deleting the D1 record; do not expose storage internals to the client.
+  }
+}
+
+async function handleDelete(request, env) {
+  if (!env.DB) {
+    return jsonResponse({ ok: false, error: "Database is not configured" }, 500);
+  }
+
+  const id = getArtworkId(request);
+  if (!id) {
+    return jsonResponse({ ok: false, error: "Artwork id is required" }, 400);
+  }
+
+  const artwork = await env.DB.prepare("SELECT id, image_key FROM artworks WHERE id = ?").bind(id).first();
+  if (!artwork) {
+    return jsonResponse({ ok: false, error: "Artwork not found" }, 404);
+  }
+
+  await deleteArtworkImage(env, artwork.image_key || artwork.imageKey);
+  await env.DB.prepare("DELETE FROM artworks WHERE id = ?").bind(id).run();
+
+  return jsonResponse({ ok: true, deletedId: id });
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -124,7 +164,8 @@ export async function onRequest(context) {
 
   if (request.method === "GET") return handleGet(env);
   if (request.method === "POST") return handlePost(request, env);
-  if (["PUT", "DELETE"].includes(request.method)) return notImplementedResponse();
+  if (request.method === "DELETE") return handleDelete(request, env);
+  if (request.method === "PUT") return notImplementedResponse();
 
   return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
 }

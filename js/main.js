@@ -170,6 +170,18 @@ async function createArtworkInApi(artwork) {
   }
 }
 
+async function deleteArtworkFromApi(id) {
+  try {
+    const body = await requestApi(`/artworks?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    return Boolean(body.ok);
+  } catch (error) {
+    console.warn("Failed to delete artwork from API.", error);
+    return false;
+  }
+}
+
 function normalizeApiArtwork(artwork) {
   let tags = [];
   try {
@@ -192,6 +204,7 @@ function normalizeApiArtwork(artwork) {
     favorite: Boolean(artwork.favorite),
     createdAt: artwork.created_at || artwork.createdAt || "",
     updatedAt: artwork.updated_at || artwork.updatedAt || "",
+    isCloud: true,
   };
 }
 
@@ -238,6 +251,7 @@ if (typeof window !== "undefined") {
     fetchArtworksFromApi,
     uploadArtworkImage,
     createArtworkInApi,
+    deleteArtworkFromApi,
     loadCloudArtworks,
   };
 }
@@ -666,7 +680,7 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const routeLink = event.target.closest("[data-route]");
   if (routeLink) {
     event.preventDefault();
@@ -695,6 +709,29 @@ document.addEventListener("click", (event) => {
   if (deleteButton) {
     const ok = confirm("この作品を削除しますか？");
     if (!ok) return;
+    const deleteId = deleteButton.dataset.deleteId;
+    const artwork = state.artworks.find((item) => item.id === deleteId);
+    if (artwork?.isCloud && getFamilyCode()) {
+      const deleted = await deleteArtworkFromApi(deleteId);
+      if (!deleted) {
+        setCloudMessage("削除に失敗しました。", true);
+        return;
+      }
+
+      const artworks = await fetchArtworksFromApi();
+      if (artworks) {
+        await replaceStateWithCloudArtworks(artworks);
+      } else {
+        state.artworks = state.artworks.filter((item) => item.id !== deleteId);
+        renderHome();
+        renderList();
+        renderGallery();
+      }
+      setCloudMessage("作品を削除しました。");
+      navigate("list");
+      return;
+    }
+
     state.artworks = state.artworks.filter((item) => item.id !== deleteButton.dataset.deleteId);
     saveArtworks();
     updateStorageStatus();
