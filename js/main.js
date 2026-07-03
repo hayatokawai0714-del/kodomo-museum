@@ -1,4 +1,6 @@
 const STORAGE_KEY = "kodomoMuseumArtworks";
+const FAMILY_CODE_STORAGE_KEY = "kodomoMuseumFamilyCode";
+const API_BASE = "/api";
 const IMAGE_MAX_EDGE = 1200;
 const JPEG_QUALITY = 0.72;
 const STORAGE_SOFT_LIMIT_BYTES = 4.5 * 1024 * 1024;
@@ -30,6 +32,118 @@ const imagePreview = document.querySelector("#image-preview");
 const formMessage = document.querySelector("#form-message");
 const storageStatus = document.querySelector("#storage-status");
 const detailContent = document.querySelector("#detail-content");
+
+function getFamilyCode() {
+  try {
+    return localStorage.getItem(FAMILY_CODE_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function saveFamilyCode(code) {
+  try {
+    const trimmedCode = String(code || "").trim();
+    if (trimmedCode) {
+      localStorage.setItem(FAMILY_CODE_STORAGE_KEY, trimmedCode);
+    } else {
+      localStorage.removeItem(FAMILY_CODE_STORAGE_KEY);
+    }
+  } catch {
+    // Keep the LocalStorage artwork flow working even if code storage fails.
+  }
+}
+
+function getApiHeaders(headers = {}) {
+  const apiHeaders = new Headers(headers);
+  const familyCode = getFamilyCode();
+  if (familyCode) apiHeaders.set("X-Family-Code", familyCode);
+  return apiHeaders;
+}
+
+async function readApiJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function requestApi(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: getApiHeaders(options.headers),
+  });
+  const body = await readApiJson(response);
+  if (!response.ok || body?.ok === false) {
+    throw new Error(body?.error || "API request failed");
+  }
+  return body;
+}
+
+async function fetchArtworksFromApi() {
+  try {
+    const body = await requestApi("/artworks");
+    return body.artworks || [];
+  } catch (error) {
+    console.warn("Failed to fetch artworks from API.", error);
+    return null;
+  }
+}
+
+async function uploadArtworkImage(imageData, fileName = "artwork.jpg") {
+  try {
+    const body = await requestApi("/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageData, fileName }),
+    });
+    return body.imageKey || null;
+  } catch (error) {
+    console.warn("Failed to upload artwork image.", error);
+    return null;
+  }
+}
+
+function toApiArtworkPayload(artwork) {
+  return {
+    id: artwork.id,
+    title: artwork.title,
+    image_key: artwork.image_key || artwork.imageKey,
+    child_name: artwork.child_name || artwork.childName || artwork.artist,
+    age: artwork.age,
+    created_date: artwork.created_date || artwork.createdDate || artwork.date,
+    memo: artwork.memo || artwork.comment,
+    child_comment: artwork.child_comment || artwork.childComment || artwork.story,
+    tags_json: artwork.tags_json || JSON.stringify(artwork.tags || []),
+    favorite: Boolean(artwork.favorite),
+    created_at: artwork.created_at || artwork.createdAt,
+  };
+}
+
+async function createArtworkInApi(artwork) {
+  try {
+    const body = await requestApi("/artworks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(toApiArtworkPayload(artwork)),
+    });
+    return body.artwork || null;
+  } catch (error) {
+    console.warn("Failed to create artwork in API.", error);
+    return null;
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.kodomoMuseumApi = {
+    getFamilyCode,
+    saveFamilyCode,
+    fetchArtworksFromApi,
+    uploadArtworkImage,
+    createArtworkInApi,
+  };
+}
 
 function loadArtworks() {
   try {
