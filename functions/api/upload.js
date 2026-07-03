@@ -1,5 +1,6 @@
 const FAMILY_CODE_HEADER = "X-Family-Code";
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const JPEG_DATA_URL_PREFIX = "data:image/jpeg;base64,";
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -17,42 +18,65 @@ function isAuthorized(request, env) {
   return Boolean(expectedCode && providedCode && providedCode === expectedCode);
 }
 
-function getExtension(contentType) {
-  if (contentType === "image/jpeg") return "jpg";
-  if (contentType === "image/png") return "png";
-  if (contentType === "image/webp") return "webp";
-  return "";
+async function readJson(request) {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
+function decodeBase64Image(imageData) {
+  if (typeof imageData !== "string" || !imageData.startsWith(JPEG_DATA_URL_PREFIX)) {
+    return null;
+  }
+
+  try {
+    const binary = atob(imageData.slice(JPEG_DATA_URL_PREFIX.length));
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return bytes;
+  } catch {
+    return null;
+  }
 }
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   if (!isAuthorized(request, env)) {
-    return jsonResponse({ error: "Unauthorized" }, 401);
+    return jsonResponse({ ok: false, error: "Unauthorized" }, 401);
   }
 
-  const contentType = request.headers.get("Content-Type") || "";
-  const extension = getExtension(contentType);
-  if (!extension) {
-    return jsonResponse({ error: "Unsupported image type" }, 400);
+  if (!env.ARTWORK_BUCKET) {
+    return jsonResponse({ ok: false, error: "Storage is not configured" }, 500);
   }
 
-  const body = await request.arrayBuffer();
-  if (!body.byteLength || body.byteLength > MAX_UPLOAD_BYTES) {
-    return jsonResponse({ error: "Invalid upload size" }, 400);
+  const input = await readJson(request);
+  if (!input) {
+    return jsonResponse({ ok: false, error: "Invalid JSON" }, 400);
   }
 
-  const imageKey = `artworks/${crypto.randomUUID()}.${extension}`;
+  const bytes = decodeBase64Image(input.imageData);
+  if (!bytes || !bytes.byteLength || bytes.byteLength > MAX_UPLOAD_BYTES) {
+    return jsonResponse({ ok: false, error: "Invalid image data" }, 400);
+  }
 
-  // ARTWORK_BUCKET is an R2 binding. Keep real bucket names in Cloudflare settings.
-  await env.ARTWORK_BUCKET.put(imageKey, body, {
-    httpMetadata: { contentType },
+  const imageKey = `artworks/${crypto.randomUUID()}.jpg`;
+
+  await env.ARTWORK_BUCKET.put(imageKey, bytes, {
+    httpMetadata: { contentType: "image/jpeg" },
+    customMetadata: {
+      originalFileName: String(input.fileName || "").slice(0, 120),
+    },
   });
 
-  return jsonResponse({ image_key: imageKey }, 201);
+  return jsonResponse({ ok: true, imageKey }, 201);
 }
 
 export async function onRequest(context) {
   if (context.request.method === "POST") return onRequestPost(context);
-  return jsonResponse({ error: "Method not allowed" }, 405);
+  return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
 }
