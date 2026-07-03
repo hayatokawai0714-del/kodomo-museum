@@ -207,6 +207,16 @@ async function attachCloudImageUrls(artworks) {
   return nextArtworks;
 }
 
+async function replaceStateWithCloudArtworks(artworks) {
+  revokeCloudImageObjectUrls();
+  state.artworks = await attachCloudImageUrls(artworks.map(normalizeApiArtwork));
+  state.galleryIndex = 0;
+  renderHome();
+  renderList();
+  renderGallery();
+  updateStorageStatus();
+}
+
 async function loadCloudArtworks() {
   if (familyCodeInput) saveFamilyCode(familyCodeInput.value);
 
@@ -217,13 +227,7 @@ async function loadCloudArtworks() {
     return;
   }
 
-  revokeCloudImageObjectUrls();
-  state.artworks = await attachCloudImageUrls(artworks.map(normalizeApiArtwork));
-  state.galleryIndex = 0;
-  renderHome();
-  renderList();
-  renderGallery();
-  updateStorageStatus();
+  await replaceStateWithCloudArtworks(artworks);
   setCloudMessage(`クラウドから${state.artworks.length}件読み込みました。`);
 }
 
@@ -541,6 +545,35 @@ async function compressImageFile(file) {
   return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
 }
 
+async function saveArtworkToCloud(artwork) {
+  const fileName = imageInput.files[0]?.name || "artwork.jpg";
+  const imageKey = await uploadArtworkImage(state.selectedImage, fileName);
+  if (!imageKey) return false;
+
+  const cloudArtwork = {
+    ...artwork,
+    imageUrl: "",
+    imageKey,
+    childName: artwork.artist,
+    createdDate: artwork.date,
+    memo: artwork.comment,
+    childComment: artwork.story,
+  };
+
+  const createdArtwork = await createArtworkInApi(cloudArtwork);
+  if (!createdArtwork) return false;
+
+  const cloudArtworks = await fetchArtworksFromApi();
+  if (!cloudArtworks) return false;
+
+  await replaceStateWithCloudArtworks(cloudArtworks);
+  formMessage.textContent = "クラウドに保存しました。";
+  setCloudMessage(`クラウドから${state.artworks.length}件読み込みました。`);
+  resetForm();
+  renderDetail(createdArtwork.id || artwork.id);
+  return true;
+}
+
 imageInput.addEventListener("change", async () => {
   const file = imageInput.files[0];
   if (!file) return;
@@ -577,7 +610,7 @@ imageInput.addEventListener("change", async () => {
   }
 });
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(form);
 
@@ -600,6 +633,13 @@ form.addEventListener("submit", (event) => {
     createdAt: new Date().toISOString(),
   };
 
+  if (getFamilyCode()) {
+    formMessage.textContent = "クラウドに保存しています...";
+    const cloudSaved = await saveArtworkToCloud(artwork);
+    if (cloudSaved) return;
+    formMessage.textContent = "クラウド保存に失敗したため、この端末に保存します。";
+  }
+
   try {
     const nextArtworks = [artwork, ...state.artworks];
     const nextJson = JSON.stringify(nextArtworks);
@@ -619,6 +659,7 @@ form.addEventListener("submit", (event) => {
     renderList();
     renderGallery();
     renderDetail(artwork.id);
+    if (getFamilyCode()) formMessage.textContent = "クラウド保存に失敗したため、この端末に保存しました。";
   } catch {
     formMessage.textContent = "写真の容量が大きいため保存できませんでした。別の写真を選ぶか、保存済み作品を減らしてください。";
     updateStorageStatus();
