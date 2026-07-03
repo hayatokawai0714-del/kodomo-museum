@@ -2,7 +2,7 @@
 
 子供の作品を、家族だけの小さな美術館のように閲覧できる静的WebアプリのMVPです。HTML / CSS / JavaScriptのみで構成し、Cloudflare Pagesに配置しやすい形にしています。
 
-公開URL：https://kodomo-museum-2.pages.dev
+正式公開URL：https://kodomo-museum.pages.dev
 
 ## 主な機能
 
