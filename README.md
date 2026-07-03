@@ -5,6 +5,7 @@
 正式公開URL：https://kodomo-museum.pages.dev
 Cloudflare Pages正式URL確認用：kodomo-museum
 環境変数反映確認用：Cloudflare Pages next deployment
+正式Pages再デプロイ確認用：kodomo-museum
 
 ## 主な機能
 
