@@ -56,4 +56,4 @@ Current app behavior still uses LocalStorage. Cloudflare D1/R2 integration files
 - Create an R2 bucket and bind it as `ARTWORK_BUCKET`.
 - Set `FAMILY_ACCESS_CODE` as a Cloudflare Pages environment variable.
 - Pages Functions under `functions/api/` check `X-Family-Code` on the server before returning artwork data.
-- Replace dummy values in `wrangler.toml` in Cloudflare/Wrangler settings; do not commit real database IDs, bucket names, tokens, or secrets.
+- Use `wrangler.example.toml` only as a reference file. Configure real D1/R2 bindings in Cloudflare Pages settings; do not commit real database IDs, bucket names, tokens, or secrets.
