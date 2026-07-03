@@ -335,7 +335,14 @@ main {
   margin-bottom: 18px;
   padding: 14px;
   border: 1px solid var(--line);
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.44);
+  box-shadow: 0 8px 18px rgba(51, 43, 33, 0.06);
+}
+
+.home-cloud-panel {
+  width: min(100%, 720px);
+  margin-bottom: 26px;
 }
 
 .cloud-panel label {
@@ -680,6 +687,16 @@ textarea {
   }
 
   .filter-panel label {
+    width: 100%;
+  }
+
+  .cloud-panel {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .cloud-panel label,
+  .cloud-panel button {
     width: 100%;
   }
 

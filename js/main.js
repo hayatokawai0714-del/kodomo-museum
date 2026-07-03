@@ -634,6 +634,7 @@ document.querySelector("#next-art").addEventListener("click", () => moveGallery(
 document.querySelector("#back-to-list").addEventListener("click", () => navigate("list"));
 
 if (familyCodeInput) {
+  familyCodeInput.addEventListener("input", () => saveFamilyCode(familyCodeInput.value));
   familyCodeInput.addEventListener("change", () => saveFamilyCode(familyCodeInput.value));
 }
 
