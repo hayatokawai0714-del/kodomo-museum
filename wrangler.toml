@@ -1,0 +1,18 @@
+name = "kodomo-museum"
+compatibility_date = "2026-07-03"
+pages_build_output_dir = "."
+
+# Cloudflare Pages production environment variables:
+# - FAMILY_ACCESS_CODE: shared family access code
+#
+# Replace the dummy values below in Cloudflare/Wrangler settings.
+# Do not commit real database IDs, bucket names, API tokens, or secrets.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "replace-with-d1-database-name"
+database_id = "replace-with-d1-database-id"
+
+[[r2_buckets]]
+binding = "ARTWORK_BUCKET"
+bucket_name = "replace-with-r2-bucket-name"
