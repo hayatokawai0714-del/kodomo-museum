@@ -560,57 +560,140 @@ textarea {
   opacity: 0.82;
 }
 
+.detail-view.active {
+  width: calc(100vw - 32px);
+  max-width: none;
+  min-height: calc(100vh - 176px);
+  margin-inline: calc(50% - 50vw + 16px);
+  margin-top: calc(clamp(36px, 5vw, 72px) * -1);
+  padding: clamp(28px, 5vw, 64px) clamp(18px, 5vw, 72px) clamp(42px, 6vw, 78px);
+  color: #e9e5dc;
+  background: #151515;
+}
+
+.detail-back-button {
+  min-height: 36px;
+  padding-inline: 0;
+  color: rgba(233, 229, 220, 0.68);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.detail-back-button:hover {
+  color: #fffefa;
+  background: transparent;
+  opacity: 0.9;
+}
+
 .detail-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 1.16fr) minmax(260px, 0.84fr);
-  gap: clamp(34px, 6vw, 78px);
-  margin-top: 26px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(22px, 4vw, 40px);
+  width: min(1180px, 100%);
+  margin: clamp(16px, 3vw, 32px) auto 0;
+}
+
+.detail-artwork-display {
+  align-content: center;
+  min-height: min(72vh, 760px);
 }
 
 .detail-image-wrap {
-  padding: clamp(18px, 3vw, 28px);
+  display: grid;
+  place-items: center;
+  width: min(100%, 1120px);
+  padding: clamp(18px, 3vw, 32px);
   border: 0;
-  outline: 1px solid rgba(222, 217, 209, 0.64);
+  outline: 1px solid rgba(255, 254, 250, 0.3);
   border-radius: 3px;
 }
 
 .detail-image-wrap img {
-  max-height: 72vh;
+  width: auto;
+  max-width: 100%;
+  max-height: min(74vh, 780px);
   object-fit: contain;
   background: #efede8;
 }
 
+.detail-text {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  color: rgba(233, 229, 220, 0.72);
+  text-align: center;
+}
+
+.detail-text .eyebrow {
+  color: rgba(233, 229, 220, 0.46);
+}
+
 .detail-text h1 {
   margin: 0 0 10px;
+  color: #fffefa;
   font-family: "Yu Mincho", "Hiragino Mincho ProN", "Times New Roman", serif;
-  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-size: clamp(0.95rem, 1.8vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.detail-text .button-row {
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.detail-text .ghost-button,
+.detail-text .danger-button {
+  min-height: 36px;
+  color: rgba(233, 229, 220, 0.62);
+  border-color: rgba(233, 229, 220, 0.18);
+  background: rgba(255, 254, 250, 0.04);
+  font-size: 0.76rem;
+}
+
+.detail-text .ghost-button:hover,
+.detail-text .danger-button:hover {
+  color: #fffefa;
+  background: rgba(255, 254, 250, 0.1);
+}
+
+.detail-view .detail-plate {
+  margin-top: 14px;
+}
+
+.detail-view .detail-plate strong {
+  color: rgba(255, 254, 250, 0.86);
+  font-size: 0.9rem;
+}
+
+.detail-view .detail-plate span {
+  color: rgba(233, 229, 220, 0.5);
+  font-size: 0.7rem;
 }
 
 .meta-list {
   display: grid;
-  gap: 8px;
-  margin: 20px 0;
-  color: var(--muted);
-  font-size: 0.8rem;
+  gap: 6px;
+  margin: 14px 0 0;
+  color: rgba(233, 229, 220, 0.56);
+  font-size: 0.72rem;
 }
 
 .detail-block {
-  margin-top: 22px;
+  margin-top: 18px;
 }
 
 .detail-block h2 {
-  margin: 0 0 8px;
-  font-size: 0.82rem;
+  margin: 0 0 6px;
+  color: rgba(233, 229, 220, 0.5);
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0;
+  letter-spacing: 0.08em;
 }
 
 .detail-block p {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.86rem;
+  color: rgba(233, 229, 220, 0.62);
+  font-size: 0.78rem;
   line-height: 1.8;
   white-space: pre-wrap;
 }
@@ -627,6 +710,11 @@ textarea {
   background: rgba(111, 118, 109, 0.08);
   border-radius: 999px;
   font-size: 0.74rem;
+}
+
+.detail-view .tag {
+  color: rgba(233, 229, 220, 0.64);
+  background: rgba(255, 254, 250, 0.08);
 }
 
 .artwork-form {
@@ -792,6 +880,35 @@ textarea {
 
   .detail-image-wrap {
     padding: 16px;
+  }
+
+  .detail-view.active {
+    width: 100vw;
+    min-height: calc(100vh - 126px);
+    margin-inline: calc(50% - 50vw);
+    margin-top: -26px;
+    padding: 22px 14px 42px;
+  }
+
+  .detail-layout {
+    gap: 18px;
+    margin-top: 10px;
+  }
+
+  .detail-artwork-display {
+    min-height: auto;
+  }
+
+  .detail-image-wrap img {
+    max-height: 62vh;
+  }
+
+  .detail-text {
+    padding-inline: 4px;
+  }
+
+  .detail-text .button-row {
+    gap: 8px;
   }
 
   .filter-panel label {
