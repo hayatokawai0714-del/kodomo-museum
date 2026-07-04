@@ -38,6 +38,11 @@ const loadCloudArtworksButton = document.querySelector("#load-cloud-artworks");
 const cloudMessage = document.querySelector("#cloud-message");
 const adminPanel = document.querySelector("#admin-panel");
 const adminFormSlot = document.querySelector("#admin-form-slot");
+const museumGate = document.querySelector("#museum-gate");
+const gateForm = document.querySelector("#gate-form");
+const gateKeyInput = document.querySelector("#gate-key-input");
+const gateMessage = document.querySelector("#gate-message");
+const resetFamilyCodeButton = document.querySelector("#reset-family-code");
 
 function getFamilyCode() {
   try {
@@ -70,10 +75,37 @@ function setCloudMessage(message, isError = false) {
   cloudMessage.classList.toggle("error", isError);
 }
 
+function setGateMessage(message) {
+  if (gateMessage) gateMessage.textContent = message;
+}
+
 function mountAdminForm() {
   if (adminFormSlot && form && form.parentElement !== adminFormSlot) {
     adminFormSlot.appendChild(form);
   }
+}
+
+function showGate(message = "") {
+  if (!museumGate) return;
+  museumGate.classList.remove("hidden", "closing");
+  museumGate.setAttribute("aria-hidden", "false");
+  document.body.classList.add("gate-locked");
+  setGateMessage(message);
+  if (gateKeyInput) {
+    gateKeyInput.value = "";
+    gateKeyInput.focus();
+  }
+}
+
+function hideGate() {
+  if (!museumGate) return;
+  museumGate.classList.add("closing");
+  museumGate.setAttribute("aria-hidden", "true");
+  window.setTimeout(() => {
+    museumGate.classList.add("hidden");
+    museumGate.classList.remove("closing");
+    document.body.classList.remove("gate-locked");
+  }, 420);
 }
 
 function getApiHeaders(headers = {}) {
@@ -107,6 +139,20 @@ async function fetchArtworksFromApi() {
   try {
     const body = await requestApi("/artworks");
     return body.artworks || [];
+  } catch (error) {
+    console.warn("Failed to fetch artworks from API.", error);
+    return null;
+  }
+}
+
+async function fetchArtworksWithFamilyCode(code) {
+  try {
+    const response = await fetch(`${API_BASE}/artworks`, {
+      headers: { "X-Family-Code": String(code || "").trim() },
+    });
+    const body = await readApiJson(response);
+    if (!response.ok || body?.ok === false) return null;
+    return body?.artworks || [];
   } catch (error) {
     console.warn("Failed to fetch artworks from API.", error);
     return null;
@@ -239,17 +285,24 @@ async function replaceStateWithCloudArtworks(artworks) {
 }
 
 async function loadCloudArtworks() {
-  if (familyCodeInput) saveFamilyCode(familyCodeInput.value);
-
-  setCloudMessage("クラウドから読み込み中...");
-  const artworks = await fetchArtworksFromApi();
-  if (!artworks) {
-    setCloudMessage("クラウドから読み込めませんでした。共有コードを確認してください。", true);
+  const familyCode = String(familyCodeInput?.value || getFamilyCode()).trim();
+  if (!familyCode) {
+    setCloudMessage("共有コードを入力してください。", true);
     return;
   }
 
+  setCloudMessage("クラウドから読み込み中...");
+  const artworks = await fetchArtworksWithFamilyCode(familyCode);
+  if (!artworks) {
+    setCloudMessage("鍵が合いませんでした。", true);
+    return;
+  }
+
+  saveFamilyCode(familyCode);
+  syncFamilyCodeInput();
   await replaceStateWithCloudArtworks(artworks);
   setCloudMessage(`クラウドから${state.artworks.length}件読み込みました。`);
+  hideGate();
 }
 
 if (typeof window !== "undefined") {
@@ -257,11 +310,45 @@ if (typeof window !== "undefined") {
     getFamilyCode,
     saveFamilyCode,
     fetchArtworksFromApi,
+    fetchArtworksWithFamilyCode,
     uploadArtworkImage,
     createArtworkInApi,
     deleteArtworkFromApi,
     loadCloudArtworks,
   };
+}
+
+async function enterMuseumWithCode(code, { auto = false } = {}) {
+  const familyCode = String(code || "").trim();
+  if (!familyCode) {
+    showGate();
+    return false;
+  }
+
+  if (!auto) setGateMessage("鍵を確かめています...");
+  const artworks = await fetchArtworksWithFamilyCode(familyCode);
+  if (!artworks) {
+    saveFamilyCode("");
+    syncFamilyCodeInput();
+    showGate(auto ? "" : "鍵が合いませんでした");
+    return false;
+  }
+
+  saveFamilyCode(familyCode);
+  syncFamilyCodeInput();
+  await replaceStateWithCloudArtworks(artworks);
+  hideGate();
+  navigate("gallery");
+  return true;
+}
+
+function initializeMuseumGate() {
+  const savedCode = getFamilyCode();
+  if (!savedCode) {
+    showGate();
+    return;
+  }
+  enterMuseumWithCode(savedCode, { auto: true });
 }
 
 function loadArtworks() {
@@ -759,9 +846,20 @@ document.querySelector("#prev-art").addEventListener("click", () => moveGallery(
 document.querySelector("#next-art").addEventListener("click", () => moveGallery(1));
 document.querySelector("#back-to-list").addEventListener("click", () => navigate("list"));
 
-if (familyCodeInput) {
-  familyCodeInput.addEventListener("input", () => saveFamilyCode(familyCodeInput.value));
-  familyCodeInput.addEventListener("change", () => saveFamilyCode(familyCodeInput.value));
+if (gateForm) {
+  gateForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await enterMuseumWithCode(gateKeyInput?.value || "");
+  });
+}
+
+if (resetFamilyCodeButton) {
+  resetFamilyCodeButton.addEventListener("click", () => {
+    saveFamilyCode("");
+    syncFamilyCodeInput();
+    setCloudMessage("");
+    showGate();
+  });
 }
 
 if (loadCloudArtworksButton) {
@@ -811,3 +909,4 @@ renderList();
 renderGallery();
 updateStorageStatus();
 navigate(window.location.hash.replace("#", "") || "home");
+initializeMuseumGate();

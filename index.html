@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
+    <div id="museum-gate" class="museum-gate hidden" aria-hidden="true">
+      <form id="gate-form" class="gate-ticket">
+        <p class="gate-kicker">Family Private Gallery</p>
+        <h1>こども美術館</h1>
+        <label for="gate-key-input">秘密の鍵を入力してください</label>
+        <input id="gate-key-input" class="gate-key-input" type="password" autocomplete="off" />
+        <button id="gate-enter-button" class="ghost-button" type="submit">入場</button>
+        <p id="gate-message" class="gate-message" role="status"></p>
+      </form>
+    </div>
+
     <header class="site-header">
       <a class="brand" href="#home" data-route="home" aria-label="ホームへ戻る">
         <span class="brand-mark">□</span>
@@ -38,6 +49,7 @@
                 <input id="family-code-input" type="password" autocomplete="off" placeholder="家族の共有コード" />
               </label>
               <button class="ghost-button" id="load-cloud-artworks" type="button">クラウドから読み込み</button>
+              <button class="text-button reset-key-button" id="reset-family-code" type="button">鍵を変更</button>
               <p id="cloud-message" class="cloud-message" role="status"></p>
             </div>
             <div id="admin-form-slot"></div>
