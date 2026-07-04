@@ -37,24 +37,6 @@
           <p class="eyebrow">Home Exhibition</p>
           <h1 id="home-title">こども美術館</h1>
         </div>
-        <details id="admin-panel" class="admin-panel">
-          <summary class="admin-summary">
-            <span>管理</span>
-            <span class="admin-summary-note">共有・追加</span>
-          </summary>
-          <div class="admin-panel-body">
-            <div class="cloud-panel home-cloud-panel" aria-label="共有コード">
-              <label>
-                共有コード
-                <input id="family-code-input" type="password" autocomplete="off" placeholder="家族の共有コード" />
-              </label>
-              <button class="ghost-button" id="load-cloud-artworks" type="button">クラウドから読み込み</button>
-              <button class="text-button reset-key-button" id="reset-family-code" type="button">鍵を変更</button>
-              <p id="cloud-message" class="cloud-message" role="status"></p>
-            </div>
-            <div id="admin-form-slot"></div>
-          </div>
-        </details>
         <div class="today-layout">
           <div>
             <p class="label">今日の展示作品</p>
@@ -181,6 +163,11 @@
         </form>
       </section>
     </main>
+
+    <div class="key-actions">
+      <button class="text-button reset-key-button" id="reset-family-code" type="button">鍵を変更</button>
+      <p id="cloud-message" class="cloud-message" role="status"></p>
+    </div>
 
     <nav class="bottom-nav" aria-label="スマホナビゲーション">
       <a href="#home" data-route="home">ホーム</a>

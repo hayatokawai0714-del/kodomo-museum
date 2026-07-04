@@ -33,11 +33,7 @@ const imagePreview = document.querySelector("#image-preview");
 const formMessage = document.querySelector("#form-message");
 const storageStatus = document.querySelector("#storage-status");
 const detailContent = document.querySelector("#detail-content");
-const familyCodeInput = document.querySelector("#family-code-input");
-const loadCloudArtworksButton = document.querySelector("#load-cloud-artworks");
 const cloudMessage = document.querySelector("#cloud-message");
-const adminPanel = document.querySelector("#admin-panel");
-const adminFormSlot = document.querySelector("#admin-form-slot");
 const museumGate = document.querySelector("#museum-gate");
 const gateForm = document.querySelector("#gate-form");
 const gateKeyInput = document.querySelector("#gate-key-input");
@@ -65,10 +61,6 @@ function saveFamilyCode(code) {
   }
 }
 
-function syncFamilyCodeInput() {
-  if (familyCodeInput) familyCodeInput.value = getFamilyCode();
-}
-
 function setCloudMessage(message, isError = false) {
   if (!cloudMessage) return;
   cloudMessage.textContent = message;
@@ -77,12 +69,6 @@ function setCloudMessage(message, isError = false) {
 
 function setGateMessage(message) {
   if (gateMessage) gateMessage.textContent = message;
-}
-
-function mountAdminForm() {
-  if (adminFormSlot && form && form.parentElement !== adminFormSlot) {
-    adminFormSlot.appendChild(form);
-  }
 }
 
 function showGate(message = "") {
@@ -285,7 +271,7 @@ async function replaceStateWithCloudArtworks(artworks) {
 }
 
 async function loadCloudArtworks() {
-  const familyCode = String(familyCodeInput?.value || getFamilyCode()).trim();
+  const familyCode = String(getFamilyCode()).trim();
   if (!familyCode) {
     setCloudMessage("共有コードを入力してください。", true);
     return;
@@ -299,7 +285,6 @@ async function loadCloudArtworks() {
   }
 
   saveFamilyCode(familyCode);
-  syncFamilyCodeInput();
   await replaceStateWithCloudArtworks(artworks);
   setCloudMessage(`クラウドから${state.artworks.length}件読み込みました。`);
   hideGate();
@@ -329,13 +314,11 @@ async function enterMuseumWithCode(code, { auto = false } = {}) {
   const artworks = await fetchArtworksWithFamilyCode(familyCode);
   if (!artworks) {
     saveFamilyCode("");
-    syncFamilyCodeInput();
     showGate(auto ? "" : "鍵が合いませんでした");
     return false;
   }
 
   saveFamilyCode(familyCode);
-  syncFamilyCodeInput();
   await replaceStateWithCloudArtworks(artworks);
   hideGate();
   navigate("gallery");
@@ -584,21 +567,16 @@ function setActiveLinks(route) {
 
 function navigate(route) {
   const previousRoute = state.currentRoute;
-  const visibleRoute = route === "add" ? "home" : route;
   state.currentRoute = route;
-  views.forEach((view) => view.classList.toggle("active", view.id === visibleRoute));
+  views.forEach((view) => view.classList.toggle("active", view.id === route));
   setActiveLinks(route);
   window.location.hash = route;
   if (previousRoute !== route) window.scrollTo({ top: 0, behavior: "smooth" });
-  if (route !== "add" && previousRoute !== route && adminPanel) adminPanel.open = false;
 
-  if (visibleRoute === "home") renderHome();
+  if (route === "home") renderHome();
   if (route === "gallery") renderGallery();
   if (route === "list") renderList();
-  if (route === "add") {
-    if (adminPanel) adminPanel.open = true;
-    updateStorageStatus();
-  }
+  if (route === "add") updateStorageStatus();
 }
 
 function resetForm() {
@@ -856,14 +834,9 @@ if (gateForm) {
 if (resetFamilyCodeButton) {
   resetFamilyCodeButton.addEventListener("click", () => {
     saveFamilyCode("");
-    syncFamilyCodeInput();
     setCloudMessage("");
     showGate();
   });
-}
-
-if (loadCloudArtworksButton) {
-  loadCloudArtworksButton.addEventListener("click", loadCloudArtworks);
 }
 
 filterType.addEventListener("change", () => {
@@ -901,8 +874,6 @@ window.addEventListener("hashchange", () => {
   if (document.getElementById(route)) navigate(route);
 });
 
-mountAdminForm();
-syncFamilyCodeInput();
 loadArtworks();
 renderHome();
 renderList();
