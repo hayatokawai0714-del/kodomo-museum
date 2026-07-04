@@ -208,6 +208,10 @@ main {
   margin-bottom: clamp(26px, 4vw, 44px);
 }
 
+.home-heading {
+  margin-bottom: clamp(14px, 2.5vw, 24px);
+}
+
 .section-heading h1 {
   margin: 0;
   font-family: "Yu Mincho", "Hiragino Mincho ProN", "Times New Roman", serif;
