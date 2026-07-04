@@ -36,6 +36,8 @@ const detailContent = document.querySelector("#detail-content");
 const familyCodeInput = document.querySelector("#family-code-input");
 const loadCloudArtworksButton = document.querySelector("#load-cloud-artworks");
 const cloudMessage = document.querySelector("#cloud-message");
+const adminPanel = document.querySelector("#admin-panel");
+const adminFormSlot = document.querySelector("#admin-form-slot");
 
 function getFamilyCode() {
   try {
@@ -66,6 +68,12 @@ function setCloudMessage(message, isError = false) {
   if (!cloudMessage) return;
   cloudMessage.textContent = message;
   cloudMessage.classList.toggle("error", isError);
+}
+
+function mountAdminForm() {
+  if (adminFormSlot && form && form.parentElement !== adminFormSlot) {
+    adminFormSlot.appendChild(form);
+  }
 }
 
 function getApiHeaders(headers = {}) {
@@ -489,16 +497,21 @@ function setActiveLinks(route) {
 
 function navigate(route) {
   const previousRoute = state.currentRoute;
+  const visibleRoute = route === "add" ? "home" : route;
   state.currentRoute = route;
-  views.forEach((view) => view.classList.toggle("active", view.id === route));
+  views.forEach((view) => view.classList.toggle("active", view.id === visibleRoute));
   setActiveLinks(route);
   window.location.hash = route;
   if (previousRoute !== route) window.scrollTo({ top: 0, behavior: "smooth" });
+  if (route !== "add" && previousRoute !== route && adminPanel) adminPanel.open = false;
 
-  if (route === "home") renderHome();
+  if (visibleRoute === "home") renderHome();
   if (route === "gallery") renderGallery();
   if (route === "list") renderList();
-  if (route === "add") updateStorageStatus();
+  if (route === "add") {
+    if (adminPanel) adminPanel.open = true;
+    updateStorageStatus();
+  }
 }
 
 function resetForm() {
@@ -790,6 +803,7 @@ window.addEventListener("hashchange", () => {
   if (document.getElementById(route)) navigate(route);
 });
 
+mountAdminForm();
 syncFamilyCodeInput();
 loadArtworks();
 renderHome();
