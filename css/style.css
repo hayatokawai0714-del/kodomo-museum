@@ -32,7 +32,6 @@ body.gate-locked {
 
 body.gate-locked .site-header,
 body.gate-locked main,
-body.gate-locked .key-actions,
 body.gate-locked .bottom-nav {
   visibility: hidden;
   opacity: 0;
@@ -115,12 +114,6 @@ body.gate-locked .bottom-nav {
 .gate-message {
   min-height: 1.2em;
   margin: 0;
-  color: var(--muted);
-  font-size: 0.76rem;
-}
-
-.reset-key-button {
-  min-height: 36px;
   color: var(--muted);
   font-size: 0.76rem;
 }
@@ -870,21 +863,6 @@ textarea {
   margin: 0;
   color: var(--muted);
   font-size: 0.76rem;
-}
-
-.key-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: min(1180px, calc(100% - 64px));
-  margin: -72px auto 96px;
-  color: var(--muted);
-}
-
-.key-actions .cloud-message {
-  font-size: 0.72rem;
 }
 
 .bottom-nav {

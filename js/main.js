@@ -38,7 +38,6 @@ const museumGate = document.querySelector("#museum-gate");
 const gateForm = document.querySelector("#gate-form");
 const gateKeyInput = document.querySelector("#gate-key-input");
 const gateMessage = document.querySelector("#gate-message");
-const resetFamilyCodeButton = document.querySelector("#reset-family-code");
 
 function getFamilyCode() {
   try {
@@ -829,14 +828,6 @@ if (gateForm) {
   gateForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     await enterMuseumWithCode(gateKeyInput?.value || "");
-  });
-}
-
-if (resetFamilyCodeButton) {
-  resetFamilyCodeButton.addEventListener("click", () => {
-    saveFamilyCode("");
-    setCloudMessage("");
-    showGate();
   });
 }
 
