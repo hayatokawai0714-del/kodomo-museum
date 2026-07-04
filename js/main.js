@@ -287,6 +287,7 @@ async function loadCloudArtworks() {
   saveFamilyCode(familyCode);
   await replaceStateWithCloudArtworks(artworks);
   setCloudMessage(`クラウドから${state.artworks.length}件読み込みました。`);
+  navigate("home");
   hideGate();
 }
 
@@ -320,8 +321,8 @@ async function enterMuseumWithCode(code, { auto = false } = {}) {
 
   saveFamilyCode(familyCode);
   await replaceStateWithCloudArtworks(artworks);
+  navigate("home");
   hideGate();
-  navigate("gallery");
   return true;
 }
 
